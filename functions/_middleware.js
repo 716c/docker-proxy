@@ -20,8 +20,13 @@ export async function onRequest(context) {
   newUrl.port = "443";
   newUrl.protocol = "https:";
   
-  // 复制所有请求头
-  const newHeaders = new Headers(request.headers);
+  // 复制请求头，但修正Host头
+  const newHeaders = new Headers();
+  for (const [key, value] of request.headers.entries()) {
+    if (key.toLowerCase() !== 'host') {
+      newHeaders.set(key, value);
+    }
+  }
   newHeaders.set('Host', targetHost);
   
   const newRequest = new Request(newUrl, {
@@ -32,7 +37,15 @@ export async function onRequest(context) {
   
   try {
     const response = await fetch(newRequest);
-    return response;
+    
+    // 创建新的响应，修正响应头
+    const newResponse = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers
+    });
+    
+    return newResponse;
   } catch (error) {
     return new Response(`Proxy Error: ${error.message}`, { status: 502 });
   }
