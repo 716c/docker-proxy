@@ -2,19 +2,13 @@ export async function onRequest(context) {
   const { request } = context;
   const url = new URL(request.url);
   const path = url.pathname;
-  const host = url.hostname;
   
-  // 根据请求路径判断目标注册表
+  // 根据路径判断目标服务器
   let targetHost;
   
-  if (path.startsWith("/v2/") && host.includes("ghcr")) {
-    // GitHub Container Registry
-    targetHost = "ghcr.io";
-  } else if (path.startsWith("/v2/")) {
-    // Docker Hub
+  if (path.startsWith("/v2/")) {
     targetHost = "registry-1.docker.io";
   } else if (path.startsWith("/token")) {
-    // Docker Hub auth
     targetHost = "auth.docker.io";
   } else {
     return new Response("Multi-Registry Proxy for Pages", { status: 200 });
@@ -26,11 +20,20 @@ export async function onRequest(context) {
   newUrl.port = "443";
   newUrl.protocol = "https:";
   
+  // 复制所有请求头
+  const newHeaders = new Headers(request.headers);
+  newHeaders.set('Host', targetHost);
+  
   const newRequest = new Request(newUrl, {
     method: request.method,
-    headers: request.headers,
+    headers: newHeaders,
     body: request.body,
   });
   
-  return fetch(newRequest);
+  try {
+    const response = await fetch(newRequest);
+    return response;
+  } catch (error) {
+    return new Response(`Proxy Error: ${error.message}`, { status: 502 });
+  }
 }
