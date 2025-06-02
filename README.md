@@ -1,5 +1,5 @@
 # docker-proxy
-# 文档：配置 Docker 守护进程使用 HTTP/HTTPS 代理
+# 配置 Docker 守护进程使用 HTTP/HTTPS 代理
 
 **目标：**
 本文档旨在指导用户如何在 Linux 系统上配置 Docker 守护进程，使其在执行 `docker pull` 等操作时，通过指定的 HTTP/HTTPS 代理服务器进行网络连接。这对于访问受限或速度较慢的 Docker Registry (如 Docker Hub, ghcr.io 等) 非常有用。
